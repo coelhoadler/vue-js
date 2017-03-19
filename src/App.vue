@@ -3,10 +3,12 @@
 		<h1 class="centralizado" v-text='title'></h1>
 		<!--<h1 v-text='title'></h1>-->
 
+		<input type="search" class="filtro" placeholder="filtre por parte do título" v-on:input="filtro = $event.target.value">
+
 		<ul class="lista-fotos">
-			<li v-for="foto of fotos" class="lista-fotos-item">
+			<li v-for="foto of fotosComFiltro" class="lista-fotos-item">
 				<meu-painel :titulo="foto.titulo">
-					<img class="imagem-responsiva" :src="foto.url" :alt="foto.titulo">
+					<imagem-responsiva :url="foto.url" :titulo="foto.titulo" />
 				</meu-painel>		
 			</li>
 		</ul>
@@ -17,23 +19,38 @@
 
 <script>
 	import Painel from './components/shared/painel/Painel.vue';
+	import ImagemResponsiva from './components/shared/imagem-responsiva/ImagemResponsiva.vue';
 
 	export default {
 
 		components : {
-			'meu-painel' : Painel
+			'meu-painel' : Painel,
+			'imagem-responsiva' : ImagemResponsiva
 		},
 
 		data() {
 			return {
 				title : 'Dashboard de Imagens',
-				fotos : []
+				fotos : [],
+				filtro : ''
 			}
 		},
 		created() {
 			this.$http.get("http://localhost:3000/v1/fotos")
 			.then(res => res.json())
 			.then(fotos => this.fotos = fotos, error => console.log(error));
+		},
+
+		computed : {
+			fotosComFiltro() {
+				if (this.filtro) {
+					let exp = new RegExp(this.filtro.trim(), 'i');
+					return this.fotos.filter(foto => exp.test(foto.titulo));
+				} else {
+					return this.fotos;
+				}
+			}
+
 		}
 	}
 </script>
@@ -55,7 +72,8 @@
 		display: inline-block;
 	}
 
-	.imagem-responsiva {
+	.filtro {
+		display: block;
 		width: 100%;
 	}
 </style>
